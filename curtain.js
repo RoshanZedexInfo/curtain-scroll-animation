@@ -1,50 +1,65 @@
-// class curtainAnimate{
-//     // curtain section tag
-//     curtainSection;
-//     // curtain wrapper that wrappers the curtain-animate div
-//     curtainWrapper;
-//     // curtain-animate div to animate
-//     curtainAnimate;
-//     leftCurtain;
-//     rightCurtain;
-//     fullCurtain;
-// }
+class curtainAnimate{
+    // curtain section tag
+    curtainSection;
 
-const curtainSection = document.querySelector('.curtain-section');
-const curtainWrapper = document.querySelector(".curtain-wrapper");
-const curtains = document.querySelector('.curtain-common');
-const curtainAnimate = document.querySelector('.curtain-animate');
-function animateCurtains(){
-    let top = curtains.getBoundingClientRect().top + window.scrollY;
-    let percent = ( (top - curtainAnimate.clientHeight) / (curtainAnimate.clientHeight)) * 100
-    console.log((top), curtains.clientHeight , curtainWrapper.clientHeight)
-    // console.log(percent)
-    // try{
-    //     document.querySelector(".curtain-left").style.transform = 'translateX(-'+percent+'%)';
-    //     document.querySelector(".curtain-right").style.transform = 'translateX('+percent+'%)';
-    // }catch(e){
-    //     console.log(e.message)
-    // }
-  };
+    // curtain wrapper that wrappers the curtain-animate div
+    curtainWrapper;
 
-  const options = {
-    root : null,
-    rootMargin:'0px',
-    threshold:0.8
-  }
+    fullCurtain;
+    curtains;
 
-  const observer = new IntersectionObserver(handleCurtains , options);
-  observer.observe(curtainWrapper)
-  observer.observe(curtains)
+    constructor(curtainSection , curtainWrapper , curtains , curtainFull){
+      this.curtainSection = curtainSection;
+      this.curtainWrapper = curtainWrapper;
+      this.fullCurtain = curtainFull;
+      this.curtains = curtains;
+      this.initObserver();
+      this.onResize();
+    }
 
-  function handleCurtains(entires){
-    entires.forEach(entry => {
+    initObserver(){
+      const options = {
+        root : null,
+        rootMargin:'0px',
+        threshold:0.8
+      }
+      const observer = new IntersectionObserver(this.handleCurtains , options);
+      observer.observe(this.fullCurtain)
+    }
+
+    handleCurtains = ( entires ) => {
+      entires.forEach(entry => {
         if(entry.isIntersecting){
             console.log('event-added');
-            window.addEventListener("scroll", animateCurtains);
+            window.addEventListener("scroll", this.animateCurtains);
         }else{
             console.log('event-removed')
-            removeEventListener('scroll', animateCurtains)
+            removeEventListener('scroll', this.animateCurtains)
         }
     });
+    }
+
+    animateCurtains = ()=>{
+      let top = window.pageYOffset - this.curtainSection.offsetTop;
+      if(top >= 0){
+        let percent = (( top / (this.curtainWrapper.clientHeight - this.curtains[0].clientHeight))*100)
+        this.curtains[0].style.transform = 'translateX(-'+percent+'%)';
+        this.curtains[1].style.transform = 'translateX('+percent+'%)';
+      }
+    }
+
+    onResize(){
+      window.onResize = this.animateCurtains();
+    }
+}
+
+(function(w,d){
+  function activateCurtains(){
+    const curtainSection = document.querySelector('.curtain-section');
+    const curtainWrapper = document.querySelector(".curtain-wrapper");
+    const curtains = document.querySelectorAll('.curtain-common');
+    const curtainFull = document.querySelector('.curtain-full');
+    new curtainAnimate( curtainSection , curtainWrapper , curtains , curtainFull );
   }
+  w.onload = activateCurtains;
+})(window,document)
